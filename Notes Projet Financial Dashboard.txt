@@ -1,5 +1,0 @@
-### Projet Financial Dashboard ###
-
-
-Phase 1 - NLP
-- créer l'env, installer torch, transformers (hugging face), pandas, etc., générer requirements.txt, initialize the README.md, link the project to GitHub
