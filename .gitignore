@@ -4,3 +4,5 @@
 
 
 Notes.txt
+notebooks/
+data/ # thinking about keeping raw data only
