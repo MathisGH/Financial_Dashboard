@@ -1,8 +1,8 @@
-### gitignore ###
-
 .venv/
 
 
 Notes.txt
 notebooks/
-data/ # thinking about keeping raw data only
+data/
+
+.env # environment variables
