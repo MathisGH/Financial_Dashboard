@@ -22,7 +22,9 @@ def create_news_table():
                    title TEXT,
                    description TEXT,
                    publishing_date TEXT,
-                   url TEXT UNIQUE)"""
+                   url TEXT UNIQUE,
+                   sentiment_label TEXT,
+                   sentiment_score REAL)"""
     )
     conn.commit()
     conn.close()
