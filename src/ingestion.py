@@ -29,8 +29,9 @@ def save_to_db(articles, company):
 
     data_to_insert = []
     sql_query = """
-            INSERT OR IGNORE INTO news (source, company, title, description, publishing_date, url)
-            VALUES (?, ?, ?, ?, ?, ?)"""
+            INSERT OR IGNORE INTO news (source, company, title, description, publishing_date, url, sentiment_label, sentiment_score)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """
 
     for article in articles:
         data_to_insert.append((
@@ -39,9 +40,11 @@ def save_to_db(articles, company):
             article['title'],
             article['description'],
             article['publishedAt'],
-            article['url']
+            article['url'],
+            None,
+            None
         ))
-    cursor.executemany(sql_query, data_to_insert) # Addind multiple records at once
+    cursor.executemany(sql_query, data_to_insert) # Adding multiple records at once
     conn.commit()
     conn.close()
 
