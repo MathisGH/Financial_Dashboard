@@ -1,3 +1,5 @@
+# How to run the api: uvicorn api:app --reload
+
 from fastapi import FastAPI
 from src.db import get_connection
 
