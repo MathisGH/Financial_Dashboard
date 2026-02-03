@@ -4,14 +4,36 @@ import streamlit as st
 import pandas as pd
 import requests
 
-st.title("Financial News Sentiment Dashboard V1.0")
+st.title("Financial News Sentiment Dashboard V0.1")
 
 company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
 if st.button("Get News Sentiments"):
     with st.spinner("Fetching news data..."):
         response = requests.get(f"http://127.0.0.1:8000/news/{company_name}")
+        df = pd.DataFrame(response.json().get("news", []))
     if response.status_code == 200:
-        st.json(response.json())
         st.success("Data fetched successfully!")
+
+        col1, col2 , col3 = st.columns(3)
+        with col1:
+            st.write(f"### {company_name}")
+        with col2:
+            score_of_the_day = "not yet implemented"
+            st.write(f"### Score of the day: {score_of_the_day}")
+        with col3:
+            evolution_since_yesterday = "not yet implemented"
+            st.write(f"### Evolution since yesterday: {evolution_since_yesterday} % change")
+
+        st.line_chart(df['sentiment_score']) # There will be the evolution graph of sentiment scores over time (7 days, 1 month, etc.)
+
+        if not df.empty:
+            with st.expander("See detailed articles", expanded=False):
+                for index, row in df.iterrows():
+                    st.subheader(row['title'])
+                    st.write(f"**Source:** {row['source']}")
+                    st.write(f"**Sentiment:** {row['sentiment_label']}")
+                    st.write(f"**Published on:** {row['publishing_date']}")
+                    st.markdown("---")
+
     else:
         st.error("Failed to fetch data from the API.")
