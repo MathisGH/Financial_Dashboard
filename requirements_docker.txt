@@ -1,8 +1,9 @@
-fastapi
-uvicorn
-requests
-pandas
-python-dotenv
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch
 transformers
+fastapi
+uvicorn
+pandas
+requests
+python-dotenv
 streamlit
