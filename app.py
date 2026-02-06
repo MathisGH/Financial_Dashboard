@@ -3,13 +3,16 @@
 import streamlit as st
 import pandas as pd
 import requests
+import os
+
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") # Default to localhost for local testing, but can be overridden by setting the API_URL environment variable
 
 st.title("Financial News Sentiment Dashboard V0.1")
 
 company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
 if st.button("Get News Sentiments"):
     with st.spinner("Fetching news data..."):
-        response = requests.get(f"http://api:8000/news/{company_name}")
+        response = requests.get(f"http://{API_URL}/news/{company_name}")
         # response = requests.get(f"http://localhost:8000/news/{company_name}") # For local testing without Docker, use localhost instead of api
         df = pd.DataFrame(response.json().get("news", []))
     if response.status_code == 200:

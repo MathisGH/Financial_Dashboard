@@ -20,5 +20,7 @@ services:
       dockerfile: Dockerfile.dashboard
     ports:
       - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
     depends_on: # In order to ensure the API is up before the dashboard tries to connect
       - api
