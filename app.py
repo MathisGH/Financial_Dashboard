@@ -14,6 +14,7 @@ if st.button("Get News Sentiments"):
     with st.spinner("Fetching news data..."):
         response = requests.get(f"{API_URL}/news/{company_name}")
         # response = requests.get(f"http://localhost:8000/news/{company_name}") # For local testing without Docker, use localhost instead of api
+        print(response)
         df = pd.DataFrame(response.json().get("news", []))
     if response.status_code == 200:
         st.success("Data fetched successfully!")
