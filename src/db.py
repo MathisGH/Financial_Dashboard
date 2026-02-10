@@ -29,6 +29,13 @@ def create_news_table():
     conn.commit()
     conn.close()
 
+def get_last_article_date():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(publishing_date) FROM news")
+    result = cursor.fetchone()[0]
+    conn.close()
+    return result 
 
 ### -------------------------------------------------------------------------------------------------------------- ###
 
