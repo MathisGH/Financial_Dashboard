@@ -3,6 +3,11 @@ import requests
 import os
 from db import get_connection, create_news_table
 import sqlite3
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Variables
 
@@ -48,20 +53,27 @@ def save_to_db(articles, company):
     conn.commit()
     conn.close()
 
-
-### -------------------------------------------------------------------------------------------------------------- ###
-
-if __name__ == "__main__":
-    create_news_table()
+def automated_loop():
     for company in companies:
         params = {
             "q": company,
             "apiKey": NEWSAPI_KEY,
             "language": "en",
-            "sortBy": "relevancy", # mix between popularity, publishedAt
+            "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
             "pageSize": 20,
         }
         articles = fetch_news(company, params)
         print(f"Fetched {len(articles)} articles for {company}")
         save_to_db(articles, company)
-    print("News ingestion completed.")
+
+### -------------------------------------------------------------------------------------------------------------- ###
+
+if __name__ == "__main__":
+    logger.info("Starting news ingestion process...")
+    while True:
+        try:
+            automated_loop()
+            logger.info("News ingestion cycle completed successfully.")
+        except Exception as e:
+            logger.error(f"Error during news ingestion: {e}")
+        time.sleep(3600) # Wait for 1 hour before the next cycle
