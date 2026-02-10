@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import requests
 import os
-from db import get_connection, create_news_table
+from db import get_connection, create_news_table, get_last_article_date
 import sqlite3
 import time
 import logging
@@ -60,7 +60,8 @@ def automated_loop():
             "apiKey": NEWSAPI_KEY,
             "language": "en",
             "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
-            "pageSize": 20,
+            "pageSize": 50,
+            "from": get_last_article_date()
         }
         articles = fetch_news(company, params)
         print(f"Fetched {len(articles)} articles for {company}")
