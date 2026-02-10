@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import requests
 import os
-from db import get_connection, create_news_table, get_last_article_date
+from src.db import get_connection, create_news_table, get_last_article_date
 import sqlite3
 import time
 import logging
@@ -55,13 +55,15 @@ def save_to_db(articles, company):
 
 def automated_loop():
     for company in companies:
+        last_date = get_last_article_date(company)
+        from_date = last_date if last_date else "2026-01-01" # just a default date to fetch all news if the database is empty
         params = {
             "q": company,
             "apiKey": NEWSAPI_KEY,
             "language": "en",
             "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
             "pageSize": 50,
-            "from": get_last_article_date(company_name=company) if get_last_article_date(company_name=company) else "2026-01-01" # just a default date to fetch all news if the database is empty
+            "from": from_date # just a default date to fetch all news if the database is empty
         }
         articles = fetch_news(company, params)
         print(f"Fetched {len(articles)} articles for {company}")

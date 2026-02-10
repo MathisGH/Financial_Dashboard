@@ -8,6 +8,7 @@ from typing import List
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import torch.nn.functional as F
+from src.ingestion import automated_loop
 
 app = FastAPI()
 
@@ -85,3 +86,13 @@ async def get_news(company_name: str):
         news_list.append(news_item)
     conn.close()
     return {"company": company_name, "news": news_list}
+
+@app.post("/update_news")
+def update_news():
+    logger.info("Updating news data...")
+    try:
+        automated_loop()
+        return {"message": "News data updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating news data: {e}")
+        return {"message": f"Error updating news data: {e}"}
