@@ -9,7 +9,8 @@ API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") # Default to localhost f
 
 st.title("Financial News Sentiment Dashboard V0.1")
 
-company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
+# company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
+company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Microsoft", "Amazon", "Google", "Meta", "Tesla", "Netflix"])
 if st.button("Get News Sentiments"):
     with st.spinner("Fetching news data..."):
         response = requests.get(f"{API_URL}/news/{company_name}")
