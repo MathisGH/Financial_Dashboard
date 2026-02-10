@@ -61,7 +61,7 @@ def automated_loop():
             "language": "en",
             "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
             "pageSize": 50,
-            "from": get_last_article_date()
+            "from": get_last_article_date() if get_last_article_date() else "2026-01-01" # just a default date to fetch all news if the database is empty
         }
         articles = fetch_news(company, params)
         print(f"Fetched {len(articles)} articles for {company}")
