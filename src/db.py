@@ -29,10 +29,10 @@ def create_news_table():
     conn.commit()
     conn.close()
 
-def get_last_article_date():
+def get_last_article_date(company_name):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT MAX(publishing_date) FROM news")
+    cursor.execute("SELECT MAX(publishing_date) FROM news WHERE company = ?", (company_name,))
     result = cursor.fetchone()[0]
     conn.close()
     return result 
