@@ -20,37 +20,46 @@ if st.sidebar.button("Update News Data"):
         st.error("Failed to update news data.")
 
 # company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
-company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Amazon", "Google", "Meta", "Tesla", "Netflix"])
-if st.button("Get News Sentiments"):
+company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Meta", "Tesla", "Netflix"])
+if st.button(f"Get News Sentiments for {company_name}"):
     with st.spinner("Fetching news data..."):
         response = requests.get(f"{API_URL}/news/{company_name}")
         # response = requests.get(f"http://localhost:8000/news/{company_name}") # For local testing without Docker, use localhost instead of api
-        print(response)
-        df = pd.DataFrame(response.json().get("news", []))
     if response.status_code == 200:
         st.success("Data fetched successfully!")
 
-        col1, col2 , col3 = st.columns(3)
+        data = response.json()
+        global_score = data.get("global_score", 50.0)
+        history = data.get("score_history", {})
+        news = data.get("news", [])
+        
+        yesterday_str = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday_score = history.get(yesterday_str, global_score) # By default, if no data for yesterday, no evolution
+        
+        evolution = round(((global_score - yesterday_score) / yesterday_score) * 100, 2) if yesterday_score != 0 else 0
+
+        col1, col2, col3 = st.columns(3)
         with col1:
-            st.write(f"### {company_name}")
+            st.metric(label=f"Ticker: {company_name}", value=company_name)
         with col2:
-            score_of_the_day = "not yet implemented"
-            st.write(f"### Score of the day: {score_of_the_day}")
+            st.metric(label="Score of the Day", value=f"{global_score}/100", delta=f"{evolution}%")
         with col3:
-            evolution_since_yesterday = "not yet implemented"
-            st.write(f"### Evolution since yesterday: {evolution_since_yesterday} % change")
+            st.metric(label="Articles Analyzed", value=len(news))
 
-        if not df.empty:
-            st.write("#### Sentiment Score Evolution Over Time")
-            df['publishing_date'] = pd.to_datetime(df['publishing_date'])
-            df = df.sort_values('publishing_date')
-            st.line_chart(df.set_index('publishing_date')['sentiment_score']) # There will be the evolution graph of sentiment scores over time (7 days, 1 month, etc.)
+        st.write("### Global Score Trend (Last 7 Days)")
+        if history:
+            df_history = pd.DataFrame(list(history.items()), columns=['Date', 'Score'])
+            df_history['Date'] = pd.to_datetime(df_history['Date'])
+            df_history = df_history.sort_values('Date')
+            
+            st.line_chart(df_history.set_index('Date')['Score'])
         else:
-            st.info("No news data available for this company yet. Click the 'Update News Data' button to fetch the latest news.")
+            st.info("Not enough history yet.")
 
-        if not df.empty:
+        df_news = pd.DataFrame(news)
+        if not df_news.empty:
             with st.expander("See detailed articles", expanded=False):
-                for index, row in df.iterrows():
+                for index, row in df_news.iterrows():
                     st.subheader(row['title'])
                     st.write(f"**Source:** {row['source']}")
                     st.write(f"**Sentiment:** {row['sentiment_label']}")

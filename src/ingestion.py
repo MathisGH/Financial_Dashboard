@@ -16,7 +16,7 @@ NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 
 API_URL = "https://newsapi.org/v2/everything"
 
-companies = ["Apple", "Nvidia", "Amazon", "Google", "Meta", "Tesla", "Netflix"]
+companies = ["Apple", "Nvidia", "Meta", "Tesla", "Netflix"]
 
 # Step 1: fetch news data from NewsAPI
 def fetch_news(company, params):
