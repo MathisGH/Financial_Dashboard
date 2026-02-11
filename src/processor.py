@@ -1,4 +1,4 @@
-from db import get_connection
+from src.db import get_connection
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import torch.nn.functional as F

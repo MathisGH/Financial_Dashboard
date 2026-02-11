@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python src/ingestion.py
+    command: python -m src.ingestion
     env_file:
       - .env
     volumes:

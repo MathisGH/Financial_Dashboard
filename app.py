@@ -20,7 +20,7 @@ if st.sidebar.button("Update News Data"):
         st.error("Failed to update news data.")
 
 # company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
-company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Microsoft", "Amazon", "Google", "Meta", "Tesla", "Netflix"])
+company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Amazon", "Google", "Meta", "Tesla", "Netflix"])
 if st.button("Get News Sentiments"):
     with st.spinner("Fetching news data..."):
         response = requests.get(f"{API_URL}/news/{company_name}")
@@ -40,7 +40,13 @@ if st.button("Get News Sentiments"):
             evolution_since_yesterday = "not yet implemented"
             st.write(f"### Evolution since yesterday: {evolution_since_yesterday} % change")
 
-        st.line_chart(df['sentiment_score']) # There will be the evolution graph of sentiment scores over time (7 days, 1 month, etc.)
+        if not df.empty:
+            st.write("#### Sentiment Score Evolution Over Time")
+            df['publishing_date'] = pd.to_datetime(df['publishing_date'])
+            df = df.sort_values('publishing_date')
+            st.line_chart(df.set_index('publishing_date')['sentiment_score']) # There will be the evolution graph of sentiment scores over time (7 days, 1 month, etc.)
+        else:
+            st.info("No news data available for this company yet. Click the 'Update News Data' button to fetch the latest news.")
 
         if not df.empty:
             with st.expander("See detailed articles", expanded=False):

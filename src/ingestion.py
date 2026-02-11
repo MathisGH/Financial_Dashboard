@@ -16,7 +16,7 @@ NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 
 API_URL = "https://newsapi.org/v2/everything"
 
-companies = ["Apple", "Nvidia", "Microsoft", "Amazon", "Google", "Meta", "Tesla", "Netflix"]
+companies = ["Apple", "Nvidia", "Amazon", "Google", "Meta", "Tesla", "Netflix"]
 
 # Step 1: fetch news data from NewsAPI
 def fetch_news(company, params):
@@ -56,7 +56,7 @@ def save_to_db(articles, company):
 def automated_loop():
     for company in companies:
         last_date = get_last_article_date(company)
-        from_date = last_date if last_date else "2026-01-01" # just a default date to fetch all news if the database is empty
+        from_date = last_date if last_date else "2026-02-02" # just a default date to fetch all news if the database is empty
         params = {
             "q": company,
             "apiKey": NEWSAPI_KEY,
