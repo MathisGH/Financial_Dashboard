@@ -21,14 +21,21 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 logger.info("Model and tokenizer loaded successfully")
 
-class NewsArticle(BaseModel): # Model for a news article that will be returned by the API
+### Pydantic models for the API responses
+class NewsArticle(BaseModel):
+    """
+    Model for a news article that will be returned by the API.
+    """
     title: str
     source: str
     sentiment_label: str
     sentiment_score: float
     publishing_date: str
 
-class NewsResponse(BaseModel): # Model for the response that will be returned by the API (list of news articles)
+class NewsResponse(BaseModel):
+    """
+    Model for the response that will be returned by the API (list of news articles).
+    """
     company: str
     global_score: float
     score_history: dict[str, float]
@@ -36,14 +43,18 @@ class NewsResponse(BaseModel): # Model for the response that will be returned by
 
 logging.info("API server is starting up...")
 
+# Dictionary of source credibility scores (example values, might need to be updated)
 source_credibility_scores = {
     "Bloomberg": 0.9,
     "Reuters": 0.85,
     "CNBC": 0.8,
     "Financial Times": 0.95,
-    "The Wall Street Journal": 0.9,} # just an example --> needs an update
+    "The Wall Street Journal": 0.9,}
 
 def get_clean_date(date_str):
+    """
+    Converts a date string from the news API into a clean date format.
+    """
     if not date_str:
         return None
     try:
@@ -52,6 +63,11 @@ def get_clean_date(date_str):
         return None
 
 def calculate_score_of_the_day(articles, target_date):
+    """
+    Calculates a sentiment score for a given day based on news articles.
+    The score is calculated by considering the sentiment score of each article, the credibility of the source, and the recency of the article (with more recent articles having a higher weight).
+    The final score is normalized to be between 0 and 100.
+    """
     base_score = 50.0
     
     if not articles:
@@ -86,11 +102,22 @@ def calculate_score_of_the_day(articles, target_date):
 
 @app.get("/")
 async def root():
+    """
+    Root endpoint to check if the API is running.
+    """
     return {"message": "API Running"}
 
 
 @app.get("/news/{company_name}", response_model=NewsResponse)
 async def get_news(company_name: str):
+    """
+    Endpoint to get news articles and sentiment analysis for a given company.
+    This endpoint retrieves news articles for the specified company from the database, processes any articles that haven't been analyzed yet, and returns:
+    - a response containing the company name,
+    - a global sentiment score for the day,
+    - a history of sentiment scores for the past 30 days,
+    - and a list of news articles with their sentiment labels and scores.
+    """
     logger.info(f"Received request for news sentiment analysis of company: {company_name}")
     conn = get_connection()
     cursor = conn.cursor()
@@ -161,6 +188,10 @@ async def get_news(company_name: str):
 
 @app.post("/update_news")
 def update_news():
+    """
+    Endpoint to trigger the news data update process.
+    This endpoint calls the automated_loop function from the ingestion module, which fetches new news articles
+    """
     logger.info("Updating news data...")
     try:
         automated_loop()
