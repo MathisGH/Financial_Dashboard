@@ -13,13 +13,15 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
-
 API_URL = "https://newsapi.org/v2/everything"
 
 companies = ["Apple", "Nvidia", "Meta", "Tesla", "Netflix"]
 
-# Step 1: fetch news data from NewsAPI
+# Step 1: fetching data from the API (NewsAPI)
 def fetch_news(company, params):
+    """
+    Fetches news articles for a given company using the NewsAPI.
+    """
     response = requests.get(API_URL, params=params)
     if response.status_code == 200:
         return response.json().get("articles", [])
@@ -27,8 +29,11 @@ def fetch_news(company, params):
         print(f"Error fetching news for {company}: {response.status_code}")
         return []
 
-# Step 2: store news data into the database
+# Step 2: store the data into the database
 def save_to_db(articles, company):
+    """
+    Saves a list of news articles for a given company to the SQLite database.
+    """
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -54,6 +59,10 @@ def save_to_db(articles, company):
     conn.close()
 
 def automated_loop():
+    """
+    Automated loop that fetches news articles for each company and saves them to the database.
+    This function is intended to be run periodically to keep the news data up-to-date.
+    """
     for company in companies:
         last_date = get_last_article_date(company)
         from_date = last_date if last_date else "2026-02-02" # just a default date to fetch all news if the database is empty
@@ -63,7 +72,7 @@ def automated_loop():
             "language": "en",
             "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
             "pageSize": 50,
-            "from": from_date # just a default date to fetch all news if the database is empty
+            "from": from_date
         }
         articles = fetch_news(company, params)
         print(f"Fetched {len(articles)} articles for {company}")
