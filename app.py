@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 import os
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") # Default to localhost for local testing, but can be overridden by setting the API_URL environment variable
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") # Default to localhost for local testing, but can be overridden by setting the API_URL environment variable (in the docker-compose)
 
 st.title("Financial News Sentiment Dashboard V0.1")
 
