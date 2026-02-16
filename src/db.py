@@ -56,7 +56,29 @@ def get_last_article_date(company_name):
     conn.close()
     return result 
 
+def create_daily_scores_table():   
+    """
+    Creates the 'daily_scores' table in the database. The table has the following columns:
+    - id: an auto-incrementing primary key
+    - company: the company that the score is about
+    - date: the date of the score
+    - score: the sentiment score for that date
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_scores (
+                   id INTEGER PRIMARY KEY AUTOINCREMENT,
+                   company TEXT,
+                   date TEXT,
+                   score REAL)"""
+    )
+    conn.commit()
+    conn.close()
+
 ### -------------------------------------------------------------------------------------------------------------- ###
 
 if __name__ == "__main__":
     create_news_table()
+    create_daily_scores_table()
