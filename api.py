@@ -101,7 +101,7 @@ def calculate_score_of_the_day(articles, target_date):
 
 
 @app.get("/")
-async def root():
+async def root(): # Here "async" is not strictly necessary since we are not doing any async operations, but it's a good practice to keep it for future scalability if we want to add async database calls or other async operations.
     """
     Root endpoint to check if the API is running.
     """

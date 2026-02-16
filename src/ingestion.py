@@ -5,6 +5,7 @@ from src.db import get_connection, create_news_table, get_last_article_date
 import sqlite3
 import time
 import logging
+from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def automated_loop():
     """
     for company in companies:
         last_date = get_last_article_date(company)
-        from_date = last_date if last_date else "2026-02-02" # just a default date to fetch all news if the database is empty
+        from_date = last_date if last_date else (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d') # If no last date, fetch news from the last 30 days
         params = {
             "q": company,
             "apiKey": NEWSAPI_KEY,
@@ -75,8 +76,13 @@ def automated_loop():
             "from": from_date
         }
         articles = fetch_news(company, params)
-        print(f"Fetched {len(articles)} articles for {company}")
-        save_to_db(articles, company)
+
+        if not articles:
+            logger.info(f"No new articles found for {company}.")
+        else:
+            logger.info(f"Successfully fetched {len(articles)} new articles for {company}.")
+            save_to_db(articles, company)
+            logger.info(f"Saved {len(articles)} articles to database for {company}.")
 
 ### -------------------------------------------------------------------------------------------------------------- ###
 
