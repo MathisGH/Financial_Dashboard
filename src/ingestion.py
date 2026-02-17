@@ -64,13 +64,22 @@ def automated_loop():
     Automated loop that fetches news articles for each company and saves them to the database.
     This function is intended to be run periodically to keep the news data up-to-date.
     """
+    company_aliases = { # Instead of just searching for "Apple", we can also search for "iPhone" and "Mac" to capture more relevant news about Apple for example.
+    "Apple": "(Apple OR iPhone OR Mac)",
+    "Nvidia": "(Nvidia OR NVDA OR GeForce)",
+    "Meta": "(Meta OR Facebook OR Instagram)",
+    "Tesla": "(Tesla OR Musk)",
+    "Netflix": "(Netflix OR NFLX)"
+    }
     for company in companies:
         last_date = get_last_article_date(company)
         from_date = last_date if last_date else (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d') # If no last date, fetch news from the last 30 days
+        q_param = company_aliases.get(company, company) # Utilise les alias, ou juste le nom par défaut
         params = {
-            "q": company,
+            "q": f"{q_param}", # Using "" around company name to search for the EXACT name
             "apiKey": NEWSAPI_KEY,
             "language": "en",
+            "searchIn": "title,description",
             "sortBy": "publishedAt", # options: popularity, publishedAt and relevancy (mix of both)
             "pageSize": 50,
             "from": from_date
