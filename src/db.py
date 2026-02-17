@@ -3,7 +3,6 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "data" / "news.db"
 
-# Step 1: connection to the database
 def get_connection():
     """
     Creates a connection to the SQLite database. If the database file does not exist, it will be created automatically.
@@ -12,7 +11,6 @@ def get_connection():
     conn = sqlite3.connect(DB_PATH)
     return conn
 
-# Step 2: create table
 def create_news_table():
     """
     Creates the 'news' table in the database if it does not already exist. The table has the following columns:
@@ -58,7 +56,7 @@ def get_last_article_date(company_name):
 
 def create_daily_scores_table():   
     """
-    Creates the 'daily_scores' table in the database. The table has the following columns:
+    Creates the 'daily_scores' table in the database if it does not already exist. The table has the following columns:
     - id: an auto-incrementing primary key
     - company: the company that the score is about
     - date: the date of the score
@@ -72,10 +70,41 @@ def create_daily_scores_table():
                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                    company TEXT,
                    date TEXT,
-                   score REAL)"""
+                   score REAL,
+                   UNIQUE(company, date))"""
     )
     conn.commit()
     conn.close()
+
+def save_daily_score(company, date, score):
+    """
+    Saves a daily sentiment score for a given company and date to the 'daily_scores' table in the database.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    INSERT OR REPLACE INTO daily_scores (company, date, score) VALUES (?, ?, ?)
+    """, (company, date, score))
+
+    conn.commit()
+    conn.close()
+
+def get_daily_scores_history(company):
+    """
+    Retrieves the historical daily sentiment scores for a given company from the 'daily_scores' table in the database.
+    Returns a list of tuples, where each tuple contains a date and the corresponding sentiment score for that date.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT date, score FROM daily_scores WHERE company = ? ORDER BY date
+    """, (company,))
+
+    results = cursor.fetchall()
+    conn.close()
+    return results
 
 ### -------------------------------------------------------------------------------------------------------------- ###
 
