@@ -1,7 +1,7 @@
 # How to run the api: uvicorn api:app --reload
 
 from fastapi import FastAPI
-from src.db import get_connection
+from src.db import get_connection, save_daily_score, get_daily_scores_history
 import logging
 from pydantic import BaseModel
 from typing import List
@@ -165,19 +165,13 @@ async def get_news(company_name: str):
         news_list.append(news_item)
     conn.close()
     today = datetime.now().date()
+    today_score = calculate_score_of_the_day(news_list, today)
+    save_daily_score(company_name, today.strftime('%Y-%m-%d'), today_score)
     history = {}
+    history_list = get_daily_scores_history(company_name)
+    for date, score in history_list:
+        history[date] = score
     
-    # Computing the score for the past 30 days
-    for i in range(30):
-        past_date = today - timedelta(days=i)
-        
-        score = calculate_score_of_the_day(news_list, past_date)
-        
-        date_key = past_date.isoformat()
-        history[date_key] = score
-
-    today_score = history[today.isoformat()]
-
     return {
         "company": company_name, 
         "global_score": today_score,
