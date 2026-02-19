@@ -1,6 +1,6 @@
 # How to run the api: uvicorn api:app --reload
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from src.db import get_connection, save_daily_score, get_daily_scores_history
 import logging
 from pydantic import BaseModel
@@ -179,17 +179,31 @@ async def get_news(company_name: str):
         "news": news_list
     }
 
+is_updating = False # Flag to prevent multiple simultaneous updates
+
+def perform_update():
+    global is_updating
+    try:
+        logger.info("Backgroud update started")
+        automated_loop()
+        logger.info("Background update completed")
+    except Exception as e:
+        logger.error(f"Error during background update: {e}")
+    finally: # Ensure that the flag is reset even if an error occurs (always with BackgroundTasks)
+        is_updating = False
+
 
 @app.post("/update_news")
-def update_news():
+async def update_news(background_tasks: BackgroundTasks):
     """
     Endpoint to trigger the news data update process.
     This endpoint calls the automated_loop function from the ingestion module, which fetches new news articles
     """
-    logger.info("Updating news data...")
-    try:
-        automated_loop()
-        return {"message": "News data updated successfully"}
-    except Exception as e:
-        logger.error(f"Error updating news data: {e}")
-        return {"message": f"Error updating news data: {e}"}
+    global is_updating
+
+    if is_updating:
+        return {"status": "error", "message": "Update already in progress. Please wait."}
+    
+    is_updating = True
+    background_tasks.add_task(perform_update)
+    return {"status": "success", "message": "News update process has been started in the background."}
