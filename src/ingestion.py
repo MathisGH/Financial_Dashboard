@@ -103,4 +103,5 @@ if __name__ == "__main__":
             logger.info("News ingestion cycle completed successfully.")
         except Exception as e:
             logger.error(f"Error during news ingestion: {e}")
+        logger.info("Waiting 1 hourfor the next cycle...")
         time.sleep(3600) # Wait for 1 hour before the next cycle
