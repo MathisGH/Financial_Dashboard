@@ -7,64 +7,61 @@ import os
 
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000") # Default to localhost for local testing, but can be overridden by setting the API_URL environment variable (in the docker-compose)
 
-st.title("Financial News Sentiment Dashboard V0.1")
-
-st.sidebar.header("Options")
-
-if st.sidebar.button("Update News Data"):
-    with st.spinner("Updating news data..."):
-        response = requests.post(f"{API_URL}/update_news")
-    if response.status_code == 200:
-        st.success("News data updated successfully!")
-    else:
-        st.error("Failed to update news data.")
-
-# company_name = st.text_input("Enter the company name you want to analyze:", "Apple Inc")
-company_name = st.selectbox("Select a company:", ["Apple", "Nvidia", "Meta", "Tesla", "Netflix"])
-if st.button(f"Get News Sentiments for {company_name}"):
-    with st.spinner("Fetching news data..."):
+### Function to display a company card
+def display_company_card(company_name):
+    """Gather data from API and display it in a card format with score, evolution, and news"""
+    try:
         response = requests.get(f"{API_URL}/news/{company_name}")
-        # response = requests.get(f"http://localhost:8000/news/{company_name}") # For local testing without Docker, use localhost instead of api
-    if response.status_code == 200:
-        st.success("Data fetched successfully!")
+        if response.status_code == 200:
+            data = response.json()
+            global_score = data.get("global_score", 50.0)
+            history = data.get("score_history", {})
+            news = data.get("news", [])
 
-        data = response.json()
-        global_score = data.get("global_score", 50.0)
-        history = data.get("score_history", {})
-        news = data.get("news", [])
-        
-        yesterday_str = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
-        yesterday_score = history.get(yesterday_str, global_score) # By default, if no data for yesterday, no evolution
-        
-        evolution = round(((global_score - yesterday_score) / yesterday_score) * 100, 2) if yesterday_score != 0 else 0
+            yesterday_str = (pd.Timestamp.now() - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
+            yesterday_score = history.get(yesterday_str, global_score)
+            evolution = round(((global_score - yesterday_score) / yesterday_score) * 100, 2) if yesterday_score != 0 else 0
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric(label=f"Ticker: {company_name}", value=company_name)
-        with col2:
-            st.metric(label="Score of the Day", value=f"{global_score}/100", delta=f"{evolution}%")
-        with col3:
-            st.metric(label="Articles Analyzed", value=len(news))
+            with st.container(border=True):
+                st.subheader(f"{company_name}")
+                
+                m_col1, m_col2 = st.columns(2)
+                m_col1.metric("Score", f"{global_score}/100", delta=f"{evolution}%")
+                m_col2.metric("Articles", len(news))
 
-        st.write("### Global Score Trend (Last 7 Days)")
-        if history:
-            df_history = pd.DataFrame(list(history.items()), columns=['Date', 'Score'])
-            df_history['Date'] = pd.to_datetime(df_history['Date'])
-            df_history = df_history.sort_values('Date')
-            
-            st.line_chart(df_history.set_index('Date')['Score'])
+                if history:
+                    df_hist = pd.DataFrame(list(history.items()), columns=['Date', 'Score'])
+                    df_hist['Date'] = pd.to_datetime(df_hist['Date'])
+                    st.line_chart(df_hist.set_index('Date')['Score'], height=200)
+                else:
+                    st.info("No history yet.")
         else:
-            st.info("Not enough history yet.")
+            st.error(f"Error {company_name}: API Unreachable")
+    except Exception as e:
+        st.error(f"Connection error for {company_name}")
 
-        df_news = pd.DataFrame(news)
-        if not df_news.empty:
-            with st.expander("See detailed articles", expanded=False):
-                for index, row in df_news.iterrows():
-                    st.subheader(row['title'])
-                    st.write(f"**Source:** {row['source']}")
-                    st.write(f"**Sentiment:** {row['sentiment_label']}")
-                    st.write(f"**Published on:** {row['publishing_date']}")
-                    st.markdown("---")
+st.set_page_config(layout="wide") # Use the entire width of the page
+st.title("Financial News Sentiment Dashboard V1")
 
-    else:
-        st.error("Failed to fetch data from the API.")
+### Sidebar
+st.sidebar.header("Options")
+if st.sidebar.button("Update News Data"):
+    with st.spinner("Scraping new articles..."):
+        requests.post(f"{API_URL}/update_news")
+        st.sidebar.success("Database updated!")
+
+companies = st.sidebar.multiselect(
+    "Select Companies",
+    options=["Apple", "Nvidia", "Meta", "Tesla", "Netflix"],
+    default=["Apple"]
+)
+
+# Display selected companies
+if st.button("Analyze Selected Companies"):
+    for i in range(0, len(companies), 2):
+        cols = st.columns(2)
+        with cols[0]:
+            display_company_card(companies[i])
+        if i + 1 < len(companies):
+            with cols[1]:
+                display_company_card(companies[i+1])
